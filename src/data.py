@@ -1,6 +1,6 @@
 import numpy as np
 
-def cargar_ruta(ruta):
+def cargar_dat(ruta):
     with open(ruta) as f:
         lineas = f.readlines()
 
