@@ -86,3 +86,13 @@ def plot_resumen(perfil_mti, params, rango, senal, titulo=""):
     fig.tight_layout()
     
     return fig
+
+def plot_espectrograma(f, t, Z_db):
+    plt.figure(figsize=(10, 5))
+    plt.imshow(Z_db, aspect="auto", origin="lower", cmap="jet",
+            extent=[t[0], t[-1], f[0], f[-1]],
+            vmin=-40, vmax=0)
+    plt.xlabel("Tiempo (s)")
+    plt.ylabel("Doppler (Hz)")
+    plt.colorbar(label="dB")
+    plt.show()

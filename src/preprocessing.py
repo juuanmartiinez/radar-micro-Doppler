@@ -1,4 +1,6 @@
 import numpy as np
+import scipy
+from scipy import ndimage
 
 def elim_offset(datos):
     return datos - np.mean(datos)
@@ -67,3 +69,37 @@ def procesar_perfil(datos):
     perfil = fft_distancia(elim_offset(datos))
     perfil = perfil[: perfil.shape[0] // 2]
     return filtro_mti(perfil)
+
+def espectrograma(senal, t_chirp):
+
+    fs = 1000 / t_chirp
+
+    f, t, z = scipy.signal.stft(senal, fs=fs, nperseg=200, noverlap=190, nfft=800, window="hamming", 
+                                return_onesided=False, padded=False, boundary=None)
+    Z = np.fft.fftshift(z, axes=0)
+    f = np.fft.fftshift(f)
+
+    Z_db = 20 * np.log10(np.abs(Z))  # pasar a db
+    Z_db = Z_db - Z_db.max()      # normalizar
+
+    return f, t, Z_db
+
+def preparar_espectrograma(senal, t_chirp, duracion_s=5, f_max=250, rango_db=40, tamano=(128, 128)):
+
+    fs = 1000 / t_chirp
+    n = int(fs * duracion_s)
+    senal = senal[:n]
+
+    f, t, Z_db = espectrograma(senal, t_chirp)
+
+    mascara = np.abs(f) <= f_max            
+    Z_db = Z_db[mascara]
+
+    Z_db = np.clip(Z_db, - rango_db, 0)    
+    imagen = (Z_db + rango_db) / rango_db   
+
+    factores = (tamano[0] / imagen.shape[0],      # 128 / 401
+                tamano[1] / imagen.shape[1])      # 128 / 481
+    imagen = ndimage.zoom(imagen, factores, order=1)
+
+    return imagen.astype(np.float32)
