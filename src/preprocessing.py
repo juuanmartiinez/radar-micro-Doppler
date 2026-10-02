@@ -13,35 +13,57 @@ def filtro_mti(perfil):
   return perfil - np.mean(perfil, axis=1, keepdims=True)
 
 def detectar_rango(perfil_mti, margen_db=10, salto=2):
-  
-  salto_der = salto_izq = True
-  
-  potencia = np.abs(perfil_mti) ** 2
-  
-  energia = np.sum(potencia, axis=1)
-  energia_db = 10 * np.log10(energia)
-  umbral = np.median(energia_db) + margen_db
 
-  semilla = np.argmax(energia_db)
+    salto_der = salto_izq = True
 
-  izquierda = semilla
-  derecha = semilla
+    potencia = np.abs(perfil_mti) ** 2
 
-  while izquierda - 1 >= 0 and (energia_db[izquierda - 1] > umbral or salto_izq):
+    energia = np.sum(potencia, axis=1)
+    energia_db = 10 * np.log10(energia)
+    umbral = np.median(energia_db) + margen_db
 
-    if energia_db[izquierda - 1] < umbral:
-      salto_izq = False
-      izquierda = max(0, izquierda - salto)
-    else:
-      izquierda -= 1
+    semilla = np.argmax(energia_db)
+
+    izquierda = semilla
+    derecha = semilla
+
+    while izquierda - 1 >= 0 and (energia_db[izquierda - 1] > umbral or salto_izq):
+
+      if energia_db[izquierda - 1] < umbral:
+          salto_izq = False
+          destino = max(0, izquierda - salto)
+
+          if energia_db[destino] > umbral:
+            izquierda = destino
+          else:
+            break
+      else:
+          izquierda -= 1
 
 
-  while derecha + 1 < len(energia_db) and (energia_db[derecha + 1] > umbral or salto_der):
+    while derecha + 1 < len(energia_db) and (energia_db[derecha + 1] > umbral or salto_der):
 
-    if energia_db[derecha + 1] < umbral:
-      salto_der = False
-      derecha = min(len(energia_db) - 1, derecha + salto)
-    else:
-      derecha += 1 
+      if energia_db[derecha + 1] < umbral:
+          salto_der = False
+          destino = min(len(energia_db) - 1, derecha + salto)
 
-  return izquierda, derecha
+          if energia_db[destino] > umbral:
+              derecha = destino
+          else:
+              break
+      else:
+          derecha += 1
+
+    return izquierda, derecha
+
+def senal_temporal(perfil_mti, izquierda, derecha):
+    return np.sum(perfil_mti[izquierda:derecha + 1, :], axis=0)
+
+def energia_casillas_db(perfil_mti):
+    return 10 * np.log10(np.sum(np.abs(perfil_mti) ** 2, axis=1))
+
+
+def procesar_perfil(datos):
+    perfil = fft_distancia(elim_offset(datos))
+    perfil = perfil[: perfil.shape[0] // 2]
+    return filtro_mti(perfil)

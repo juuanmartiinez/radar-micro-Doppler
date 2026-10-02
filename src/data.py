@@ -1,4 +1,8 @@
 import numpy as np
+import os, re
+
+ACTIVIDADES = {1: "andar", 2: "sentarse", 3: "levantarse",
+               4: "agacharse", 5: "beber", 6: "caerse"}
 
 def cargar_dat(ruta):
     with open(ruta) as f:
@@ -26,3 +30,18 @@ def cargar_dat(ruta):
     datos = datos.reshape((n, -1), order="F")
 
     return params, datos
+
+_PATRON = re.compile(r"(\d)P(\d+)A(\d+)R(\d+)", re.IGNORECASE)
+
+def parsear_nombre(ruta):
+    nombre = os.path.basename(ruta)
+    m = _PATRON.match(nombre)
+    if m is None:
+        raise ValueError(f"Nombre no reconocido: {nombre}")
+    actividad, persona, _, repeticion = map(int, m.groups())
+    return {
+        "actividad": actividad,
+        "persona": persona,
+        "repeticion": repeticion,
+        "campana": os.path.basename(os.path.dirname(ruta)),
+    }
