@@ -4,6 +4,11 @@ import os, re
 ACTIVIDADES = {1: "andar", 2: "sentarse", 3: "levantarse",
                4: "agacharse", 5: "beber", 6: "caerse"}
 
+# Errores de etiquetado detectados en el dataset original
+CORRECCIONES = {
+    "C5_6P01A05R03": 5,   # el nombre dice caerse, pero el espectrograma es beber
+}
+
 def cargar_dat(ruta):
     with open(ruta) as f:
         lineas = f.readlines()
