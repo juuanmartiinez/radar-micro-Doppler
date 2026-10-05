@@ -1,5 +1,5 @@
 import numpy as np
-import scipy
+from scipy import signal
 from scipy import ndimage
 
 def elim_offset(datos):
@@ -74,12 +74,12 @@ def espectrograma(senal, t_chirp):
 
     fs = 1000 / t_chirp
 
-    f, t, z = scipy.signal.stft(senal, fs=fs, nperseg=200, noverlap=190, nfft=800, window="hamming", 
+    f, t, z = signal.stft(senal, fs=fs, nperseg=200, noverlap=190, nfft=800, window="hamming", 
                                 return_onesided=False, padded=False, boundary=None)
     Z = np.fft.fftshift(z, axes=0)
     f = np.fft.fftshift(f)
 
-    Z_db = 20 * np.log10(np.abs(Z))  # pasar a db
+    Z_db = 20 * np.log10(np.abs(Z) + 1e-12)  # pasar a db
     Z_db = Z_db - Z_db.max()      # normalizar
 
     return f, t, Z_db
